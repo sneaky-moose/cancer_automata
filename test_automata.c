@@ -5,16 +5,16 @@
 
 int main() 
 {
-	int i, j, rows, cols, **arr;
+	int i, j, rows, cols, *arr;
 	int types[4];
 	
-	rows = cols = 200;
+	rows = cols = 10;
 	
 	/* initialize random number generator */
 	rand_init(-1);
 	
 	/* allocate 2D array & initialize values */
-	arr = arr2_alloc(rows, cols);
+	arr = arr_alloc(rows * cols);
 	/*
 	for (i = 0; i < rows; i++)
 	{
@@ -24,7 +24,7 @@ int main()
 		}
 	}
 	*/
-	arr[50][50] = 1;
+	arr[5 * rows + 5] = 1;
 	//arr2_print(arr, rows , cols);
 	
 	iterate(arr, rows, 200);
@@ -37,5 +37,5 @@ int main()
 		printf("%d\n", types[i]);
 	}
 	
-	arr2_free(arr, rows, cols);
+	arr_free(arr);
 }

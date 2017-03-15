@@ -11,23 +11,23 @@ args :
 	N     : side length of automata
 	steps : number of iterations to perform
 */
-void iterate(int **array, int N, int steps)
+void iterate(int *array, int N, int steps)
 {
-	int i, **mask;
+	int i, *mask;
 	double probs[5] = {0.00, 0.60, 0.05, 0.05, 0.05};
 	
-	mask = arr2_alloc(N, N); /* allocate mask for new cancer */
+	mask = arr_alloc(N * N); /* allocate mask for new cancer */
 	
 	for (i = 0; i < steps; i++)
 	{
-		//automata_print(array, N);
-		//usleep(400000);
+		automata_print(array, N);
+		usleep(400000);
 		step(array, mask, N, probs);
 	}
 	//automata_print(array, N);
 	
 	
-	arr2_free(mask, N, N);
+	arr_free(mask);
 }
 
 /*
@@ -42,21 +42,22 @@ args:
 	prob  : transition probabilities {k0, k1, k2, k3, k4} of
 			automata states.
 */
-void step(int **array, int **mask, int N, double *probs)
+void step(int *array, int *mask, int N, double *probs)
 {
-	int i, j, k, l, x, y, *p;
+	int i, j, k, l, x, y, id, *p;
 	int neigh_tup[2];
 	int neigh_c, neigh_n;
 	double r, k1_prime;
 	
 	
 	/* STAGE 1 ---------------------------------------------------*/
+	id = 0;
 	for (i = 0; i < N; i++)
 	{
 		for (j = 0; j < N; j++)
 		{
 			r = randdouble(); /* generate random number */
-			p = &array[i][j];
+			p = &array[id];
 			
 			if (*p == 0 && r < probs[0]) 	  /* N -> C :: MUTATION */
 			{
@@ -70,7 +71,7 @@ void step(int **array, int **mask, int N, double *probs)
 				}
 				else
 				{
-					mask[i][j] = 1; /* mask original cancer cell for invasion */
+					mask[id] = 1; /* mask original cancer cell for invasion */
 				}
 			}
 			else if (*p == 2 && r < probs[3]) /* E -> D :: DEATH */
@@ -81,15 +82,18 @@ void step(int **array, int **mask, int N, double *probs)
 			{
 				*p = 0; /* set to N */
 			}
+			
+			id++;
 		}
 	}
 	
 	/* STAGE 2 ----------------------------------------------------*/
+	id = 0;
 	for (i = 0; i < N; i++)
 	{
 		for (j = 0; j < N; j++)
 		{
-			if (mask[i][j] == 1)
+			if (mask[id] == 1)
 			{
 				/* count numbers of normal & cancer cells */
 				neigh_c = neigh_n = 0;
@@ -144,15 +148,15 @@ void step(int **array, int **mask, int N, double *probs)
 						}
 					}
 				}
-				
-				mask[i][j] = 0;
+				mask[id] = 0;
 			}
+			id++;
 		}
 	}
 }
 
 
-int *order_neighbours(int **array, int N, int i, int j, int k)
+int *order_neighbours(int *array, int N, int i, int j, int k)
 {
 	int x, y;
 	
@@ -174,7 +178,7 @@ int *order_neighbours(int **array, int N, int i, int j, int k)
 	
 	if (within(N, x, y))
 	{
-		return &(array[x][y]);
+		return &(array[N * x + y]);
 	}
 	else
 	{
@@ -194,16 +198,18 @@ int within(int N, int i, int j)
 	  array : state of automata as 2D array of integers
 	  N 	: side length of automata
 */
-void automata_print(int **arr, int N)
+void automata_print(int *arr, int N)
 {
-	int i, j;
+	int i, j, id;
 	
 	printf("\n\n\n");
+	id = 0;
 	for (i = 0; i < N; i++)
 	{
 		for (j = 0; j < N; j++)
 		{
-			printf("%s ", rep(arr[i][j]));
+			printf("%s ", rep(arr[id]));
+			id++;
 		}
 		printf("\n");
 	}
@@ -239,9 +245,9 @@ char *rep(int value)
 }
 
 
-void type_count(int **array, int N, int *output)
+void type_count(int *array, int N, int *output)
 {
-	int i, j;
+	int i, j, id;
 	
 	/* initialize output array to zero */
 	for (i = 0; i < 4; i++)
@@ -250,11 +256,13 @@ void type_count(int **array, int N, int *output)
 	}
 	
 	/* iterate through array */
+	id = 0;
 	for (i = 0; i < N; i++)
 	{
 		for (j = 0; j < N; j++)
 		{
-			output[array[i][j]]++; /* count type */
+			output[array[id]]++; /* count type */
+			id++;
 		}
 	}
 }

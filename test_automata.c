@@ -5,32 +5,23 @@
 
 int main() 
 {
-	int i, j, rows, cols, *arr;
-	int types[4];
+	int i, j, N, *arr;
+	int types[4]; 
+	double probs[] = {0.00, 0.60, 0.05, 0.05, 0.05};
 	
-	rows = cols = 10;
-	
-	/* initialize random number generator */
-	rand_init(-1);
+	N = 20;
 	
 	/* allocate 2D array & initialize values */
-	arr = arr_alloc(rows * cols);
-	/*
-	for (i = 0; i < rows; i++)
-	{
-		for (j = 0; j < cols; j++)
-		{
-			arr[i][j] = randint(0, 3);
-		}
-	}
-	*/
-	arr[5 * rows + 5] = 1;
-	//arr2_print(arr, rows , cols);
+	arr = arr_alloc(N * N);
 	
-	iterate(arr, rows, 200);
+	init_state(arr, N, 5); 
 	
-	//automata_print(arr, rows);
-	type_count(arr, rows, types);
+	iterate_display(arr, N, 100, probs, 0);
+	
+	automata_print(arr, N);
+	
+	
+	type_count(arr, N, types);
 	
 	for (i = 0; i < 4; i++)
 	{

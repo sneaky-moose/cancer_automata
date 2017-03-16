@@ -1,26 +1,20 @@
 # Makefile for automata
-CC = gcc
-OBJS = automata.o test_automata.o arrays.o random.o
+CC= gcc
+CFLAGS= -I.
+DEPS = arrays.h automata.h random.h
+OBJS = automata.o arrays.o random.o
 
-# Test run
-test_automata.out: $(OBJS)
-	$(CC) $(OBJS) -o test_automata.out
-	
-test_automata.o: test_automata.c
-	$(CC) -c test_automata.c
-	
+.PHONY: all
+all: test_benchmark.out test_automata.out
 
-# Automata Library
-automata.o: automata.c
-	$(CC) -c automata.c
+test_benchmark.out: $(OBJS) test_benchmark.o
+	$(CC) $(OBJS) test_benchmark.o  -o $@ $(CFLAGS)
 
-# Dependencies
-arrays.o: arrays.c
-	$(CC) -c arrays.c
-	
-random.o: random.c
-	$(CC) -c random.c
+test_automata.out: $(OBJS) test_automata.o
+	$(CC) $(OBJS) test_automata.o -o $@ $(CFLAGS)
 
+%.o: %.c $(DEPS)
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 .PHONY: clean
 

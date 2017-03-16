@@ -105,7 +105,7 @@ returns :
 */
 void iterate_endcount(int *array, int N, int steps, double *probs, int *out_counts)
 {
-	int i, j;
+	int i;
 	
 	rand_init(-1);  /* initialize random number generator */
 	
@@ -153,8 +153,9 @@ void init_state(int *array, int N, int m)
 		if (array[N * x + y] != 1)
 		{
 			array[N * x + y] = 1;
+			placed++;
 		}
-		placed++;
+		
 	}
 }
 

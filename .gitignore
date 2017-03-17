@@ -52,3 +52,6 @@ dkms.conf
 
 # Untrack scrap folder
 scrap/
+
+# Untrack Cython generated files
+_automata.c

@@ -2,7 +2,7 @@
  Functions for advancing the state of the automata
  */
 
-#include "automata.h"
+#include "c_automata.h"
 
 #define TEMP_CANCER 111
 

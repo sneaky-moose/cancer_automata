@@ -8,8 +8,8 @@ Things to do:
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+#include <gsl/gsl_rng.h>
 #include "arrays.h"
-#include "random.h"
 
 
 /* automata pdf calculating functions */
@@ -35,4 +35,5 @@ void automata_print(int *array, int N);
 char *rep(int value);
 
 /* random number generator handling */
-void rng_initialize(int seed);
+int rng_initialize(int seed);
+void rng_free(int rng_own);

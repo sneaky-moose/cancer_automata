@@ -7,6 +7,8 @@
 #define TEMP_CANCER 111
 
 int rng_initialized = 0;
+gsl_rng * rng;
+
 
 /* ------------------------------------------------------------------------------------- */
 /* automata pdf calculating functions */
@@ -28,10 +30,10 @@ args :
 */
 void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
 {
-	int i, *arr, *temp_output;
+	int i, rng_own, *arr, *temp_output;
 	int types[4];
 	
-	rng_initialize(-1);
+	rng_own = rng_initialize(-1);
 	
 	arr = arr_alloc(N * N);  /* allocate memory for automata state */
 	temp_output = arr_alloc(N * N);  /* allocate memory for counting occurences of x_c values */
@@ -56,6 +58,7 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
 	
 	arr_free(arr);
 	arr_free(temp_output);
+	rng_free(rng_own);
 }
 
 
@@ -81,15 +84,17 @@ returns :
 */
 void iterate(int *array, int N, int steps, double *probs, int *out_counts)
 {
-	int i;
+	int i, rng_own;
 	
-	rng_initialize(-1);
+	rng_own = rng_initialize(-1);
 	
 	for (i = 0; i < steps; i++)
 	{
 		step(array, N, probs);  /* apply automata iteration rules */
 		type_count(array, N, &(out_counts[i * 4]));  /* count the number of cells for each type */
 	}
+	
+	rng_free(rng_own);
 }
 
 
@@ -111,9 +116,9 @@ returns :
 */
 void iterate_endcount(int *array, int N, int steps, double *probs, int *out_counts)
 {
-	int i;
+	int i, rng_own;
 	
-	rng_initialize(-1);
+	rng_own = rng_initialize(-1);
 	
 	for (i = 0; i < steps; i++)
 	{
@@ -121,6 +126,8 @@ void iterate_endcount(int *array, int N, int steps, double *probs, int *out_coun
 	}
 
 	type_count(array, N, out_counts);  /* count the number of cells for each type */
+	
+	rng_free(rng_own);
 }
 
 
@@ -140,10 +147,10 @@ returns :
 */
 void init_state(int *array, int N, int m)
 {
-	int i, x, y;
+	int i, x, y, rng_own;
 	int placed = 0;
 	
-	rng_initialize(-1);
+	rng_own = rng_initialize(-1);
 	
 	/* initialize array to zero */
 	for (i = 0; i < N * N; i++)
@@ -153,8 +160,8 @@ void init_state(int *array, int N, int m)
 	
 	while (placed < m)
 	{
-		x = randint(0, N - 1);
-		y = randint(0, N - 1);
+		x = gsl_rng_uniform_int(rng, N);
+		y = gsl_rng_uniform_int(rng, N);
 		
 		if (array[N * x + y] != 1)
 		{
@@ -163,6 +170,8 @@ void init_state(int *array, int N, int m)
 		}
 		
 	}
+	
+	rng_free(rng_own);
 }
 
 
@@ -190,7 +199,7 @@ void step(int *array, int N, double *probs)
 	{
 		for (j = 0; j < N; j++)
 		{
-			r = randdouble(); /* generate random number */
+			r = gsl_rng_uniform(rng); /* generate random number */
 			p = &array[id];
 			
 			if (*p == 0 && r < probs[0]) 	  /* N -> C :: MUTATION */
@@ -260,13 +269,13 @@ void proliferate(int *array, int N, int i, int j, double k1)
 	}
 	
 	/* decide if cancer proliferates */
-	r = randdouble();
+	r = gsl_rng_uniform(rng);
 	k1_prime = k1 * (1 -  ((double) neigh_c) / 4.00);
 	
 	if (r < k1_prime && neigh_n > 0) /* proliferate */
 	{
 		/* choose a normal cell to invade */
-		rr = randint(0, neigh_n - 1);
+		rr = gsl_rng_uniform_int(rng, neigh_n);
 		/*printf("%d --> %d\n", *(norm_neighbours[rr]), TEMP_CANCER);*/
 		*(norm_neighbours[rr]) = TEMP_CANCER;
 	}
@@ -460,11 +469,36 @@ void type_count(int *array, int N, int *output)
 	}
 }
 
-void rng_initialize(int seed)
+int rng_initialize(int seed)
 {
+	const gsl_rng_type *T;
+	
 	if (rng_initialized == 0)
 	{
-		rand_init(seed);
+		gsl_rng_env_setup();
+		T = gsl_rng_default;
+		rng = gsl_rng_alloc(T);
+		
+		if (seed >= 0)
+		{
+			gsl_rng_set(rng, (unsigned long int) seed);
+		}
 		rng_initialized = 1;
+		
+		return 1;
 	}
+	else
+	{
+		return 0;
+	}
+}
+
+void rng_free(int rng_own)
+{
+	if (rng_own == 1 && rng_initialized == 1)
+	{
+		gsl_rng_free(rng);
+		rng_initialized = 0;
+	}
+	
 }

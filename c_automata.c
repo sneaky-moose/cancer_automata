@@ -6,6 +6,7 @@
 
 #define TEMP_CANCER 111
 
+int rng_initialized = 0;
 
 /* ------------------------------------------------------------------------------------- */
 /* automata pdf calculating functions */
@@ -30,6 +31,8 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
 	int i, *arr, *temp_output;
 	int types[4];
 	
+	rng_initialize(-1);
+	
 	arr = arr_alloc(N * N);  /* allocate memory for automata state */
 	temp_output = arr_alloc(N * N);  /* allocate memory for counting occurences of x_c values */
 	
@@ -39,6 +42,9 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
 		init_state(arr, N, c_cells);
 		iterate_endcount(arr, N, steps, probs, types);
 		
+		/* DEBUG */
+		//automata_print(arr, N);
+		//arr_print(types, 4);
 		temp_output[types[1]]++;
 	}
 	
@@ -77,7 +83,7 @@ void iterate(int *array, int N, int steps, double *probs, int *out_counts)
 {
 	int i;
 	
-	rand_init(-1);  /* initialize random number generator */
+	rng_initialize(-1);
 	
 	for (i = 0; i < steps; i++)
 	{
@@ -107,7 +113,7 @@ void iterate_endcount(int *array, int N, int steps, double *probs, int *out_coun
 {
 	int i;
 	
-	rand_init(-1);  /* initialize random number generator */
+	rng_initialize(-1);
 	
 	for (i = 0; i < steps; i++)
 	{
@@ -137,7 +143,7 @@ void init_state(int *array, int N, int m)
 	int i, x, y;
 	int placed = 0;
 	
-	rand_init(-1);
+	rng_initialize(-1);
 	
 	/* initialize array to zero */
 	for (i = 0; i < N * N; i++)
@@ -451,5 +457,14 @@ void type_count(int *array, int N, int *output)
 			output[array[id]]++; /* count type */
 			id++;
 		}
+	}
+}
+
+void rng_initialize(int seed)
+{
+	if (rng_initialized == 0)
+	{
+		rand_init(seed);
+		rng_initialized = 1;
 	}
 }

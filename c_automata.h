@@ -34,5 +34,5 @@ void iterate_display(int *array, int N, int steps, double *probs, int time_delay
 void automata_print(int *array, int N);
 char *rep(int value);
 
-
-
+/* random number generator handling */
+void rng_initialize(int seed);

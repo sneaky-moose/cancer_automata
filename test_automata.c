@@ -20,7 +20,6 @@ int main()
 	
 	automata_print(arr, N);
 	
-	
 	type_count(arr, N, types);
 	
 	for (i = 0; i < 4; i++)

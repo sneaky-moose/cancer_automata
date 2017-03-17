@@ -1,8 +1,8 @@
 # Makefile for automata
 CC= gcc
 CFLAGS= -I.
-DEPS = arrays.h automata.h random.h
-OBJS = automata.o arrays.o random.o
+DEPS = arrays.h c_automata.h random.h
+OBJS = c_automata.o arrays.o random.o
 
 .PHONY: all
 all: test_benchmark.out test_automata.out

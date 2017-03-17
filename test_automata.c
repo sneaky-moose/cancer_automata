@@ -1,4 +1,4 @@
-#include "automata.h"
+#include "c_automata.h"
 #include "arrays.h"
 #include "random.h"
 

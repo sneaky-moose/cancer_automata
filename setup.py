@@ -8,7 +8,13 @@ import numpy
 
 setup(
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("automata",
-                             sources=["_automata.pyx", "c_automata.c", "arrays.c", "random.c"],
-                             include_dirs=[numpy.get_include()])],
+    ext_modules = [
+        Extension(
+            "automata",
+            sources=["_automata.pyx", "c_automata.c", "arrays.c"],
+            libraries=['gsl', 'gslcblas'],
+            include_dirs=[numpy.get_include(), "/usr/local/include"],
+            library_dirs=["/usr/local/lib"]
+        )
+    ],
 )

@@ -1,6 +1,5 @@
 #include "c_automata.h"
 #include "arrays.h"
-#include "random.h"
 
 #define STEPS 200
 #define STATES 4
@@ -36,13 +35,10 @@ int main3()
 	arr = arr_alloc(N * N);
 	out_counts = arr_alloc(STATES);
 	
-	rand_init(-1);
-	
 	init_state(arr, N, M);
 	
 	iterate_endcount(arr, N, STEPS, probs, out_counts);
 	arr_print(out_counts, STATES);
-	
 	
 	arr_free(arr);
 	arr_free(out_counts);

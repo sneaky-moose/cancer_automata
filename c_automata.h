@@ -6,6 +6,7 @@ Things to do:
 */
 
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 #include <assert.h>
 #include <gsl/gsl_rng.h>

@@ -4,8 +4,17 @@
 
 #include "c_automata.h"
 
-#define TEMP_CANCER 111
+#define T_NORMAL 0
+#define T_CANCER 1
+#define T_CANCER_TEMP 111
+#define T_EFFECTOR 2
+#define T_DEAD 3
 
+/* gsl random number global */ 
+/* 
+   commit the sin of a global variable so that random number generator does not
+   have to be initialized every time a random variable is required.
+*/
 int rng_initialized = 0;
 gsl_rng * rng;
 
@@ -200,27 +209,27 @@ void step(int *array, int N, double *probs)
 		for (j = 0; j < N; j++)
 		{
 			r = gsl_rng_uniform(rng); /* generate random number */
-			p = &array[id];
+			p = &array[id];           /* pointer to cell in array */
 			
-			if (*p == 0 && r < probs[0]) 	  /* N -> C :: MUTATION */
+			if (*p == T_NORMAL && r < probs[0]) 	  /* N -> C :: MUTATION */
 			{
-				*p = 1; /* set to C */
-			} 
-			else if (*p == 1)
+				*p = T_CANCER; /* set to C */
+			}
+			else if (*p == T_CANCER)
 			{
 				proliferate(array, N, i, j, probs[1]); /* mask original cancer cell for invasion */
 				if (r < probs[2]) /* C -> E :: EFFECTION */
 				{
-					*p = 2; /* set to E */
+					*p = T_EFFECTOR; /* set to E */
 				}
 			}
-			else if (*p == 2 && r < probs[3]) /* E -> D :: DEATH */
+			else if (*p == T_EFFECTOR && r < probs[3]) /* E -> D :: DEATH */
 			{
-				*p = 3; /* set to D */
+				*p = T_DEAD; /* set to D */
 			}
-			else if (*p == 3 && r < probs[4]) /* D -> N :: REBIRTH */
+			else if (*p == T_DEAD && r < probs[4]) /* D -> N :: REBIRTH */
 			{
-				*p = 0; /* set to N */
+				*p = T_NORMAL; /* set to N */
 			}
 			
 			id++;
@@ -230,9 +239,9 @@ void step(int *array, int N, double *probs)
 	id = 0;
 	while (id < N * N)
 	{
-		if (array[id] == TEMP_CANCER)
+		if (array[id] == T_CANCER_TEMP)
 		{
-			array[id] = 1;
+			array[id] = T_CANCER;
 		}
 		id++;
 	}
@@ -253,16 +262,16 @@ void proliferate(int *array, int N, int i, int j, double k1)
 		/* get neighbour pointer */
 		p = order_neighbours(array, N, i, j, k);
 		
-		if (p == NULL)
+		if (p == NULL) /* not within automata */
 		{
 			continue;
 		}	
-		else if (*p == 0)
+		else if (*p == T_NORMAL) /* normal type neighbour */
 		{
 			norm_neighbours[neigh_n] = p;
 			neigh_n++;
 		}
-		else if (*p == 1 || *p == TEMP_CANCER)
+		else if (*p == T_CANCER /*|| *p == T_CANCER_TEMP*/)
 		{
 			neigh_c++;
 		}
@@ -276,8 +285,7 @@ void proliferate(int *array, int N, int i, int j, double k1)
 	{
 		/* choose a normal cell to invade */
 		rr = gsl_rng_uniform_int(rng, neigh_n);
-		/*printf("%d --> %d\n", *(norm_neighbours[rr]), TEMP_CANCER);*/
-		*(norm_neighbours[rr]) = TEMP_CANCER;
+		*(norm_neighbours[rr]) = T_CANCER_TEMP;
 	}
 }
 
@@ -482,6 +490,10 @@ int rng_initialize(int seed)
 		if (seed >= 0)
 		{
 			gsl_rng_set(rng, (unsigned long int) seed);
+		}
+		else
+		{
+			gsl_rng_set(rng, (unsigned long int) time(NULL)); 
 		}
 		rng_initialized = 1;
 		

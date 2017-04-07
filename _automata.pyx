@@ -28,7 +28,7 @@ def _init_state(int N, int m):
 @cython.wraparound(False)
 def _pdf(int N, int c_cells, int steps, int runs, probs):
     if len(probs) != 5:
-        raise TypeError("Probability must be of length 4")
+        raise TypeError("Probability must be of length 5")
     
     cdef double[::1] _probs = np.asarray(probs, dtype=np.float);
     cdef double[::1] output = np.zeros(N ** 2, np.float)
@@ -40,7 +40,7 @@ def _pdf(int N, int c_cells, int steps, int runs, probs):
 @cython.wraparound(False)
 def _iterate(int[:, ::1] arr not None, int steps, probs):
     if len(probs) != 5:
-        raise TypeError("Probability must be of length 4")
+        raise TypeError("Probability must be of length 5")
         
     cdef double[::1] _probs = np.asarray(probs, dtype=np.float);
     cdef int[:, ::1] out_counts = np.zeros((steps, 4), dtype='i4')

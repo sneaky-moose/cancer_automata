@@ -6,6 +6,7 @@ Things to do:
 */
 
 #include <stdio.h>
+#include <math.h>
 #include <time.h>
 #include <unistd.h>
 #include <assert.h>
@@ -16,6 +17,8 @@ Things to do:
 typedef struct {
 	double probs[5];
 	int competition;
+	double alpha;
+	double beta;
 } Params;
 
 extern const Params params_default;
@@ -39,6 +42,8 @@ void init_state(int *array, int N, int m);
 
 /* automata iteration functions */
 void model_simple(int *array, int N, Params params);
+void model_extend(int *array, int N, Params params);
+double cell_density(int *array, int N, int i, int j, int cell_type);
 void proliferate(int *array, int N, int i, int j, double k1, int competition);
 int *order_neighbours(int *array, int N, int i, int j, int k);
 int within(int N, int i, int j);

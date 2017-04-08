@@ -18,7 +18,7 @@
 int rng_initialized = 0;
 gsl_rng * rng;
 
-const Params params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1};
+const Params params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1, .alpha = 0.0, .beta = 0.0};
 
 
 /* ------------------------------------------------------------------------------------- */
@@ -325,6 +325,132 @@ void model_simple(int *array, int N, Params params)
 	}
 }
 
+/*
+model_extend : apply the automata rules to the state of the automata
+args:
+	array : automata state
+	N	  : side length of automata
+
+params (struct)
+	prob  : transition probabilities {k0, k1, k2, k3, k4} of
+			automata states.
+	competition : cancer cells compete for resources
+*/
+void model_extend(int *array, int N, Params params)
+{
+	int i, j, id, *p, competition;
+	double r, *probs, density_e, density_c, k2p;
+	
+	/* get model parameters */
+	probs = params.probs;
+	competition = params.competition;
+	
+	/* apply automata rules */
+	id = 0;
+	for (i = 0; i < N; i++)
+	{
+		for (j = 0; j < N; j++)
+		{
+			r = gsl_rng_uniform(rng); /* generate random number */
+			p = &array[id];           /* pointer to cell in array */
+			
+			if (*p == T_NORMAL && r < probs[0]) 	  /* N -> C :: MUTATION */
+			{
+				*p = T_CANCER; /* set to C */
+			}
+			else if (*p == T_CANCER)
+			{
+				proliferate(array, N, i, j, probs[1], competition); /* cancer cell proliferation */
+				density_c = cell_density(array, N, i, j, T_CANCER); /* compute cancer cell density */
+				density_e = cell_density(array, N, i, j, T_EFFECTOR); /* compute E cell density */
+				
+				/* compute adjusted effection probability */
+				k2p = 1 - (1 - probs[2] * pow(1 - density_c, params.alpha)) * exp(-density_e * params.beta); 
+				
+				if (r < k2p) /* C -> E :: EFFECTION */
+				{
+					*p = T_EFFECTOR; /* set to E */
+				}
+			}
+			else if (*p == T_EFFECTOR && r < probs[3]) /* E -> D :: DEATH */
+			{
+				*p = T_DEAD; /* set to D */
+			}
+			else if (*p == T_DEAD && r < probs[4]) /* D -> N :: REBIRTH */
+			{
+				*p = T_NORMAL; /* set to N */
+			}
+			
+			id++;
+		}
+	}
+	
+	id = 0;
+	while (id < N * N)
+	{
+		if (array[id] == T_CANCER_TEMP)
+		{
+			array[id] = T_CANCER;
+		}
+		id++;
+	}
+}
+
+/*
+cancer_density : compute the density of cancer cells at the location (i, j)
+
+args:
+	array : automata state
+	N	  : side length of automata
+	i, j  : coordinate position of proliferating cell
+returns:
+	double : density value between 0.0 and 1.0
+*/
+double cell_density(int *array, int N, int i, int j, int cell_type)
+{
+	int k, l;
+	double out = 0.0;
+	
+	//printf("(%d, %d) \n", i, j);
+	/* 
+	  loop over 5x5 neighbourhood of cells ignoring the center cell
+	  and cells which fall outside the boundaries of the automata
+	*/
+	for (k = -2; k <= 2; k++)
+	{
+		for (l = -2; l <= 2; l++)
+		{
+			if (within(N, i + k, j + l) && !(k == 0 && l == 0))
+			{
+				if (cell_type == array[(i + k) * N + (j + l)])
+				{
+					if (abs(k) == 1 && abs(l) == 1)
+					{
+						out += 2.00;
+					}
+					else
+					{
+						out += 1.00;
+					}
+					
+				}
+				
+			}
+		}
+	}
+	out = out / 32.0;
+	
+	/* check bounds */
+	if (out > 1.0)
+	{
+		out = 1.0;
+	}
+	if (out < 0.0)
+	{
+		out = 0.0;
+	}
+	return out;
+}
 
 /*
 proliferate : handle proliferation of C cells into neighbouring N cells
@@ -422,7 +548,7 @@ int *order_neighbours(int *array, int N, int i, int j, int k)
 
 int within(int N, int i, int j)
 {
-	return 0 <= i && i < N && 0 <= j && j < N;
+	return (0 <= i) && (i < N) && (0 <= j) && (j < N);
 }
 
 /* ------------------------------------------------------------------------------------- */

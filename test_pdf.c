@@ -4,7 +4,7 @@
 #define STEPS 200
 #define STATES 4
 #define M 3
-
+/*
 int main2() 
 {
 	int N, *arr, *out_counts;
@@ -44,9 +44,11 @@ int main3()
 	arr_free(out_counts);
 	return 0;
 }
-	
+*/
+
 int main()
 {
+	/*
 	int i, N;
 	double probs[] = {0.00, 0.60, 0.05, 0.05, 0.05};
 	double output[100];
@@ -59,6 +61,6 @@ int main()
 	{
 		printf("%f, \n", output[i]);
 	}
-	
+	*/
 	return 0;
 }

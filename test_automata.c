@@ -6,16 +6,17 @@ int main()
 {
 	int i, j, N, *arr;
 	int types[4]; 
-	double probs[] = {0.00, 0.48, 0.1, 0.3, 0.1};
+	m_params params = { .probs = {0.01, 0.7, 0.15, 0.2, 0.1}, .competition = 1};
+	/*double probs[] = {0.00, 0.48, 0.1, 0.3, 0.1};*/
 	
-	N = 20;
+	N = 40;
 	
 	/* allocate 2D array & initialize values */
 	arr = arr_alloc(N * N);
 	
-	init_state(arr, N, 5);
+	init_state(arr, N, 200);
 
-	iterate_display(arr, N, 100, probs, 1000000);
+	iterate_display(arr, N, 200, &model_simple, params, 400000);
 	
 	automata_print(arr, N);
 	

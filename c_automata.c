@@ -18,6 +18,8 @@
 int rng_initialized = 0;
 gsl_rng * rng;
 
+const m_params m_params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1};
+
 
 /* ------------------------------------------------------------------------------------- */
 /* automata pdf calculating functions */
@@ -38,7 +40,7 @@ args :
 	probs   : transition probabilities of automata
 	competition : cancer cells compete for resources
 */
-void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs, int competition)
+void pdf(double *output, int N, int c_cells, int steps, int runs, modelPtr model, m_params params)
 {
 	int i, rng_own, *arr, *temp_output;
 	int types[4];
@@ -52,7 +54,7 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs,
 	for (i = 0; i < runs; i++)
 	{
 		init_state(arr, N, c_cells);
-		iterate_endcount(arr, N, steps, probs, competition, types);
+		iterate_endcount(arr, N, steps, model, params, types);
 		
 		/* DEBUG */
 		//automata_print(arr, N);
@@ -99,7 +101,7 @@ args :
 	probs       : transition probabilities of automata
 	competition : cancer cells compete for resources	
 */
-void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, double *probs, int competition)
+void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, modelPtr model, m_params params)
 {
 	int i, j, rng_own, *arr, *temp_output;
 	int types[4];
@@ -114,12 +116,12 @@ void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples
 	{
 		init_state(arr, N, c_cells); /* create random initial condition */
 		
-		iterate_endcount(arr, N, init_steps, probs, competition, types); /* initialise automata state */
+		iterate_endcount(arr, N, init_steps, model, params, types); /* initialise automata state */
 		temp_output[types[1]]++; /* add sample */
 		
 		for (j = 0; j < samples - 1; j++)
 		{
-			iterate_endcount(arr, N, sample_gap, probs, competition, types); /* jump forward in the stationary state */
+			iterate_endcount(arr, N, sample_gap, model, params, types); /* jump forward in the stationary state */
 			temp_output[types[1]]++; /* add sample */
 		}
 	}
@@ -159,7 +161,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length (steps x 4 (# of states)))
 */
-void iterate(int *array, int N, int steps, double *probs, int competition, int *out_counts)
+void iterate(int *array, int N, int steps, modelPtr model, m_params params, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -167,7 +169,7 @@ void iterate(int *array, int N, int steps, double *probs, int competition, int *
 	
 	for (i = 0; i < steps; i++)
 	{
-		step(array, N, probs, competition);  /* apply automata iteration rules */
+		(*model)(array, N, params);  /* apply automata iteration rules */
 		type_count(array, N, &(out_counts[i * 4]));  /* count the number of cells for each type */
 	}
 	
@@ -192,7 +194,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length 4 (# of states)
 */
-void iterate_endcount(int *array, int N, int steps, double *probs, int competition, int *out_counts)
+void iterate_endcount(int *array, int N, int steps, modelPtr model, m_params params, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -200,7 +202,7 @@ void iterate_endcount(int *array, int N, int steps, double *probs, int competiti
 	
 	for (i = 0; i < steps; i++)
 	{
-		step(array, N, probs, competition);  /* apply automata iteration rules */
+		(*model)(array, N, params);  /* apply automata iteration rules */
 	}
 
 	type_count(array, N, out_counts);  /* count the number of cells for each type */
@@ -259,18 +261,24 @@ void init_state(int *array, int N, int m)
 /* ------------------------------------------------------------------------------------- */
 
 /*
-step : apply the automata rules to the state of the automata
+model_simple : apply the automata rules to the state of the automata
 args:
 	array : automata state
 	N	  : side length of automata
+
+params **
 	prob  : transition probabilities {k0, k1, k2, k3, k4} of
 			automata states.
 	competition : cancer cells compete for resources
 */
-void step(int *array, int N, double *probs, int competition)
+void model_simple(int *array, int N, m_params params)
 {
-	int i, j, id, *p;
-	double r;
+	int i, j, id, *p, competition;
+	double r, *probs;
+	
+	/* get model parameters */
+	probs = params.probs;
+	competition = params.competition;
 	
 	/* apply automata rules */
 	id = 0;
@@ -432,7 +440,7 @@ args :
 	time_delay : number of milli-seconds between each state output
 				 (default: 40,000 -- set to zero to use default)
 */
-void iterate_display(int *array, int N, int steps, double *probs, int time_delay)
+void iterate_display(int *array, int N, int steps, modelPtr model, m_params params, int time_delay)
 {
 	int i;
 	int dummy_count[4];
@@ -452,7 +460,7 @@ void iterate_display(int *array, int N, int steps, double *probs, int time_delay
 	{
 		automata_print(array, N);
 		usleep(time_delay);
-		iterate(array, N, 1, probs, 1, dummy_count);
+		iterate(array, N, 1, model, params, dummy_count);
 	}
 	automata_print(array, N);
 }

@@ -18,7 +18,7 @@
 int rng_initialized = 0;
 gsl_rng * rng;
 
-const m_params m_params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1};
+const Params params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1};
 
 
 /* ------------------------------------------------------------------------------------- */
@@ -40,7 +40,7 @@ args :
 	probs   : transition probabilities of automata
 	competition : cancer cells compete for resources
 */
-void pdf(double *output, int N, int c_cells, int steps, int runs, modelPtr model, m_params params)
+void pdf(double *output, int N, int c_cells, int steps, int runs, modelPtr model, Params params)
 {
 	int i, rng_own, *arr, *temp_output;
 	int types[4];
@@ -101,7 +101,7 @@ args :
 	probs       : transition probabilities of automata
 	competition : cancer cells compete for resources	
 */
-void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, modelPtr model, m_params params)
+void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, modelPtr model, Params params)
 {
 	int i, j, rng_own, *arr, *temp_output;
 	int types[4];
@@ -161,7 +161,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length (steps x 4 (# of states)))
 */
-void iterate(int *array, int N, int steps, modelPtr model, m_params params, int *out_counts)
+void iterate(int *array, int N, int steps, modelPtr model, Params params, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -194,7 +194,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length 4 (# of states)
 */
-void iterate_endcount(int *array, int N, int steps, modelPtr model, m_params params, int *out_counts)
+void iterate_endcount(int *array, int N, int steps, modelPtr model, Params params, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -271,7 +271,7 @@ params **
 			automata states.
 	competition : cancer cells compete for resources
 */
-void model_simple(int *array, int N, m_params params)
+void model_simple(int *array, int N, Params params)
 {
 	int i, j, id, *p, competition;
 	double r, *probs;
@@ -440,7 +440,7 @@ args :
 	time_delay : number of milli-seconds between each state output
 				 (default: 40,000 -- set to zero to use default)
 */
-void iterate_display(int *array, int N, int steps, modelPtr model, m_params params, int time_delay)
+void iterate_display(int *array, int N, int steps, modelPtr model, Params params, int time_delay)
 {
 	int i;
 	int dummy_count[4];

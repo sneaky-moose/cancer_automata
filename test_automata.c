@@ -6,7 +6,7 @@ int main()
 {
 	int i, j, N, *arr;
 	int types[4]; 
-	m_params params = { .probs = {0.01, 0.7, 0.15, 0.2, 0.1}, .competition = 1};
+	Params params = { .probs = {0.01, 0.7, 0.15, 0.2, 0.1}, .competition = 1};
 	/*double probs[] = {0.00, 0.48, 0.1, 0.3, 0.1};*/
 	
 	N = 40;

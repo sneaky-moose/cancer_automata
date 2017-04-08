@@ -7,7 +7,7 @@ int main()
 	int types[4]; 
 	/*double probs[] = {0.10, 0.60, 0.05, 0.05, 0.05};*/
 	int out_counts[4];
-	m_params params = m_params_default;
+	Params params = params_default;
 	
 	N = 10000; 
 	

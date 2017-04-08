@@ -36,8 +36,9 @@ args :
 	steps   : steps in each automata simulation
 	runs 	: number of runs used to generate pdf distribution (runs >= 0)
 	probs   : transition probabilities of automata
+	competition : cancer cells compete for resources
 */
-void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
+void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs, int competition)
 {
 	int i, rng_own, *arr, *temp_output;
 	int types[4];
@@ -51,7 +52,7 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs)
 	for (i = 0; i < runs; i++)
 	{
 		init_state(arr, N, c_cells);
-		iterate_endcount(arr, N, steps, probs, types);
+		iterate_endcount(arr, N, steps, probs, competition, types);
 		
 		/* DEBUG */
 		//automata_print(arr, N);
@@ -83,6 +84,7 @@ args :
 	N     : side length of automata
 	steps : number of iterations to perform
 	probs : transition probabilities of cellular automata
+	competition : cancer cells compete for resources
 
 returns :
 	array : used for computation, so the final state of the system
@@ -91,7 +93,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length (steps x 4 (# of states)))
 */
-void iterate(int *array, int N, int steps, double *probs, int *out_counts)
+void iterate(int *array, int N, int steps, double *probs, int competition, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -99,7 +101,7 @@ void iterate(int *array, int N, int steps, double *probs, int *out_counts)
 	
 	for (i = 0; i < steps; i++)
 	{
-		step(array, N, probs);  /* apply automata iteration rules */
+		step(array, N, probs, competition);  /* apply automata iteration rules */
 		type_count(array, N, &(out_counts[i * 4]));  /* count the number of cells for each type */
 	}
 	
@@ -115,6 +117,7 @@ args :
 	N     : side length of automata
 	steps : number of iterations to perform
 	probs : transition probabilities of cellular automata
+	competition : cancer cells compete for resources
 
 returns :
 	array : used for computation, so the final state of the system
@@ -123,7 +126,7 @@ returns :
 				 step of automata evolution
 				 (must be integer array of length 4 (# of states)
 */
-void iterate_endcount(int *array, int N, int steps, double *probs, int *out_counts)
+void iterate_endcount(int *array, int N, int steps, double *probs, int competition, int *out_counts)
 {
 	int i, rng_own;
 	
@@ -131,7 +134,7 @@ void iterate_endcount(int *array, int N, int steps, double *probs, int *out_coun
 	
 	for (i = 0; i < steps; i++)
 	{
-		step(array, N, probs);  /* apply automata iteration rules */
+		step(array, N, probs, competition);  /* apply automata iteration rules */
 	}
 
 	type_count(array, N, out_counts);  /* count the number of cells for each type */
@@ -196,8 +199,9 @@ args:
 	N	  : side length of automata
 	prob  : transition probabilities {k0, k1, k2, k3, k4} of
 			automata states.
+	competition : cancer cells compete for resources
 */
-void step(int *array, int N, double *probs)
+void step(int *array, int N, double *probs, int competition)
 {
 	int i, j, id, *p;
 	double r;
@@ -217,7 +221,7 @@ void step(int *array, int N, double *probs)
 			}
 			else if (*p == T_CANCER)
 			{
-				proliferate(array, N, i, j, probs[1]); /* mask original cancer cell for invasion */
+				proliferate(array, N, i, j, probs[1], competition);
 				if (r < probs[2]) /* C -> E :: EFFECTION */
 				{
 					*p = T_EFFECTOR; /* set to E */
@@ -248,7 +252,21 @@ void step(int *array, int N, double *probs)
 }
 
 
-void proliferate(int *array, int N, int i, int j, double k1)
+/*
+proliferate : handle proliferation of C cells into neighbouring N cells
+args:
+	array : automata state
+	N	  : side length of automata
+	i, j  : coordinate position of proliferating cell
+	k1    : proliferation rate
+	competition : C cells compete for resources
+		if True (1) then use modified prolif. probability formula
+			k1_prime = k1 * (1 -  ((double) neigh_c) / 4.00);
+		else use
+			k1_prime = k2
+
+*/
+void proliferate(int *array, int N, int i, int j, double k1, int competition)
 {
 	int k, rr, *p;
 	int neigh_c = 0;
@@ -277,10 +295,18 @@ void proliferate(int *array, int N, int i, int j, double k1)
 		}
 	}
 	
+	/* compute proliferation probability */
+	if (competition)
+	{
+		k1_prime = k1 * (1 -  ((double) neigh_c) / 4.00);
+	}
+	else
+	{
+		k1_prime = k1;
+	}
+	
 	/* decide if cancer proliferates */
 	r = gsl_rng_uniform(rng);
-	k1_prime = k1 * (1 -  ((double) neigh_c) / 4.00);
-	
 	if (r < k1_prime && neigh_n > 0) /* proliferate */
 	{
 		/* choose a normal cell to invade */
@@ -360,7 +386,7 @@ void iterate_display(int *array, int N, int steps, double *probs, int time_delay
 	{
 		automata_print(array, N);
 		usleep(time_delay);
-		iterate(array, N, 1, probs, dummy_count);
+		iterate(array, N, 1, probs, 1, dummy_count);
 	}
 	automata_print(array, N);
 }

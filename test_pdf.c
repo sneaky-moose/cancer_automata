@@ -17,7 +17,7 @@ int main2()
 	init_state(arr, N, M);
 	automata_print(arr, N);
 	
-	iterate(arr, N, STEPS, probs, out_counts);
+	iterate(arr, N, STEPS, probs, 1, out_counts);
 	arr2_print(out_counts, STEPS, STATES);
 	
 	
@@ -37,7 +37,7 @@ int main3()
 	
 	init_state(arr, N, M);
 	
-	iterate_endcount(arr, N, STEPS, probs, out_counts);
+	iterate_endcount(arr, N, STEPS, probs, 1, out_counts);
 	arr_print(out_counts, STATES);
 	
 	arr_free(arr);
@@ -53,7 +53,7 @@ int main()
 	
 	N = 10;
 	
-	pdf(output, N, 5, 100, 10000, probs);
+	pdf(output, N, 5, 100, 10000, probs, 1);
 	
 	for (i = 0; i < N * N; i++)
 	{

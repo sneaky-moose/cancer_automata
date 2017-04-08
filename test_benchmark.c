@@ -16,7 +16,7 @@ int main()
 	
 	//arr2_print(arr, rows , cols);
 	
-	iterate_endcount(arr, N, 5, probs, out_counts);
+	iterate_endcount(arr, N, 5, probs, 1, out_counts);
 	
 	//automata_print(arr, rows);
 	type_count(arr, N, types);

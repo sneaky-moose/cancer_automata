@@ -73,6 +73,72 @@ void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs,
 
 
 /* ------------------------------------------------------------------------------------- */
+/* automata pdf calculating functions */
+/* ------------------------------------------------------------------------------------- */
+
+/*
+pdf_rolling : compute probability distribution function for the fraction of cancer cells
+              in a stationary state of the automata.
+
+Note that this function works differently to "pdf()" function which samples the state of
+the automata only once per realisation. This function samples the state of the automata
+multiple times under the assumption that after 'init_steps' the state of a randomly
+generated automata goes to a stationary state. Thus multiple samples of this stationary 
+state can be sampled before another automata is created from random intitial conditions.
+
+args :
+	output      : pdf of number of cancer cells in final automata state
+			      i.e. pdf(# of cancer cells = i) -> output[i]
+		 	      (output must be an array of length N * N)
+	N 	        : side length of automata (N >= 1)
+	c_cells 	: number of cancer cells in initial automata state (c_cells >= 0)
+	init_steps  : number of steps taken to initialise automata
+	samples     : number of samples taken from stationary state
+	sample_gap  : gap between sampling of stationary state
+	runs		: number of automata realisation runs to perform
+	probs       : transition probabilities of automata
+	competition : cancer cells compete for resources	
+*/
+void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, double *probs, int competition)
+{
+	int i, j, rng_own, *arr, *temp_output;
+	int types[4];
+	
+	rng_own = rng_initialize(-1);
+	
+	arr = arr_alloc(N * N);  /* allocate memory for automata state */
+	temp_output = arr_alloc(N * N);  /* allocate memory for counting occurences of x_c values */
+	
+	/* simulate automata systems */
+	for (i = 0; i < runs; i++)
+	{
+		init_state(arr, N, c_cells); /* create random initial condition */
+		
+		iterate_endcount(arr, N, init_steps, probs, competition, types); /* initialise automata state */
+		temp_output[types[1]]++; /* add sample */
+		
+		for (j = 0; j < samples - 1; j++)
+		{
+			iterate_endcount(arr, N, sample_gap, probs, competition, types); /* jump forward in the stationary state */
+			temp_output[types[1]]++; /* add sample */
+		}
+	}
+	
+	/* divide by the number of runs to get pdf*/
+	for (i = 0; i < N * N; i++)
+	{
+		output[i] = (double) temp_output[i] / (double) (runs * samples);
+	}
+	
+	arr_free(arr);
+	arr_free(temp_output);
+	rng_free(rng_own);
+}
+
+
+
+
+/* ------------------------------------------------------------------------------------- */
 /* automata iteration functions */
 /* ------------------------------------------------------------------------------------- */
 

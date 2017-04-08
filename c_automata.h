@@ -15,6 +15,7 @@ Things to do:
 
 /* automata pdf calculating functions */
 void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs, int competition);
+void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, double *probs, int competition);
 
 /* automata iteration functions */
 void iterate(int *array, int N, int steps, double *probs, int competition, int *out_counts);

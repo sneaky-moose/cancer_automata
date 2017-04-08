@@ -10,6 +10,7 @@ cimport numpy as np
 
 cdef extern from "c_automata.h":
     void pdf(double *output, int N, int c_cells, int steps, int runs, double *probs, int competition)
+    void pdf_rolling(double *output, int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, double *probs, int competition)
     void init_state(int *array, int N, int m)
     void iterate(int *array, int N, int steps, double *probs, int competition, int *out_counts)
     void iterate_endcount(int *array, int N, int steps, double *probs, int competition, int *out_counts)
@@ -37,6 +38,20 @@ def _pdf(int N, int c_cells, int steps, int runs, probs, competition=True):
     pdf(&output[0], N, c_cells, steps, runs, &_probs[0], comp)
     return np.asarray(output)
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _pdf_rolling(int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, probs, competition=True):
+    if len(probs) != 5:
+        raise TypeError("Probability must be of length 5")
+    
+    cdef int comp = 1 if competition else 0
+    
+    cdef double[::1] _probs = np.asarray(probs, dtype=np.float);
+    cdef double[::1] output = np.zeros(N ** 2, np.float)
+    pdf_rolling(&output[0], N, c_cells, init_steps, samples, sample_gap, runs, &_probs[0], comp)
+    return np.asarray(output)
+    
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

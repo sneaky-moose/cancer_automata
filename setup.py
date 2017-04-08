@@ -11,7 +11,7 @@ setup(
     ext_modules = [
         Extension(
             "automata",
-            sources=["_automata.pyx", "c_automata.c", "arrays.c"],
+            sources=["automata.pyx", "c_automata.c", "arrays.c"],
             libraries=['gsl', 'gslcblas'],
             include_dirs=[numpy.get_include(), "/usr/local/include"],
             library_dirs=["/usr/local/lib"]

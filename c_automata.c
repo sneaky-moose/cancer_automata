@@ -18,7 +18,7 @@
 int rng_initialized = 0;
 gsl_rng * rng;
 
-const Params params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1, .alpha = 0.0, .beta = 0.0};
+const Params params_default = { .probs = {0.00, 0.48, 0.1, 0.3, 0.1}, .competition = 1, .alpha = 0.0, .beta = 0.0 };
 
 
 /* ------------------------------------------------------------------------------------- */

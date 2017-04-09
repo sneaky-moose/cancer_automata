@@ -2,6 +2,8 @@ cdef extern from "c_automata.h":
 	ctypedef struct Params:
 		double probs[5];
 		int competition;
+		double alpha;
+		double beta;
 	
 	ctypedef void (*modelPtr)(int *, int, Params);
 
@@ -10,6 +12,7 @@ cdef extern from "c_automata.h":
 	void init_state(int *array, int N, int m)
 	void iterate(int *array, int N, int steps, modelPtr model, Params params, int *out_counts);
 	void model_simple(int *array, int N, Params params);
+	void model_extend(int *array, int N, Params params);
 	
     #void iterate_endcount(int *array, int N, int steps, double *probs, int competition, int *out_counts)
     #void type_count(int *array, int N, int *output)

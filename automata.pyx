@@ -19,7 +19,7 @@ def init_state(int N, int m):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def pdf(int N, int c_cells, int steps, int runs, probs, competition=True):
+def pdf(int N, int c_cells, int steps, int runs, probs, competition=True, alpha=None, beta=None):
     if len(probs) != 5:
         raise TypeError("Probability must be of length 5")
     
@@ -29,14 +29,23 @@ def pdf(int N, int c_cells, int steps, int runs, probs, competition=True):
     cdef c_automata.Params params
     params.probs = _probs
     params.competition = <int>(competition)
+    params.alpha = 0.0 if alpha is None else <double>alpha
+    params.beta = 0.0 if beta is None else <double>beta
     
-    c_automata.pdf(&output[0], N, c_cells, steps, runs, c_automata.model_simple, params)
+    cdef c_automata.modelPtr model
+    if alpha is None and beta is None:
+        model = c_automata.model_simple
+    else:
+        model = c_automata.model_extend
+    
+    c_automata.pdf(&output[0], N, c_cells, steps, runs, model, params)
+    
     return np.asarray(output)
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def pdf_rolling(int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, probs, competition=True):
+def pdf_rolling(int N, int c_cells, int init_steps, int samples, int sample_gap, int runs, probs, competition=True, alpha=None, beta=None):
     if len(probs) != 5:
         raise TypeError("Probability must be of length 5")
     
@@ -48,14 +57,23 @@ def pdf_rolling(int N, int c_cells, int init_steps, int samples, int sample_gap,
     cdef c_automata.Params params
     params.probs = _probs
     params.competition = <int>(competition)
+    params.alpha = 0.0 if alpha is None else <double>alpha
+    params.beta = 0.0 if beta is None else <double>beta
     
-    c_automata.pdf_rolling(&output[0], N, c_cells, init_steps, samples, sample_gap, runs, c_automata.model_simple, params)
+    cdef c_automata.modelPtr model
+    if alpha is None and beta is None:
+        model = c_automata.model_simple
+    else:
+        model = c_automata.model_extend
+        
+    c_automata.pdf_rolling(&output[0], N, c_cells, init_steps, samples, sample_gap, runs, model, params)
+    
     return np.asarray(output)
     
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def iterate(int[:, ::1] arr not None, int steps, probs, competition=True):
+def iterate(int[:, ::1] arr not None, int steps, probs, competition=True, alpha=None, beta=None):
     if len(probs) != 5:
         raise TypeError("Probability must be of length 5")
     
@@ -65,7 +83,15 @@ def iterate(int[:, ::1] arr not None, int steps, probs, competition=True):
     cdef c_automata.Params params
     params.probs = _probs
     params.competition = <int>(competition)
+    params.alpha = 0.0 if alpha is None else <double>alpha
+    params.beta = 0.0 if beta is None else <double>beta
     
-    c_automata.iterate(&arr[0, 0], arr.shape[0], steps, c_automata.model_simple, params, &out_counts[0, 0])
+    cdef c_automata.modelPtr model
+    if alpha is None and beta is None:
+        model = c_automata.model_simple
+    else:
+        model = c_automata.model_extend
+            
+    c_automata.iterate(&arr[0, 0], arr.shape[0], steps, model, params, &out_counts[0, 0])
     
     return np.asarray(out_counts)
